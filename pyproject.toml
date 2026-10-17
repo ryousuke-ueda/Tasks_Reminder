@@ -1,0 +1,31 @@
+[project]
+name = "tasks-reminder"
+version = "0.1.0"
+description = "Google Tasks の予定を Discord の DM でリマインドする Bot"
+requires-python = ">=3.10"
+dependencies = [
+    "discord.py>=2.4",
+    "google-api-python-client>=2.100",
+    "google-auth>=2.20",
+    "google-auth-oauthlib>=1.2",
+    "python-dotenv>=1.0",
+    "tzdata",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+tasks-reminder = "tasks_reminder.__main__:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+filterwarnings = ["ignore::DeprecationWarning:discord.utils"]
