@@ -43,13 +43,14 @@ Google Tasks の未完了タスクを、毎朝 8:00 / 毎夕 17:00（日本時�
 
 1. [Discord Developer Portal](https://discord.com/developers/applications) で New Application を作成する
 2. **Bot** タブで「Reset Token」からトークンを取得する（特権 Intent は不要）
-3. **Installation** タブで
-   - Installation Contexts の **User Install** にチェックを入れる
-   - Install Link を「Discord Provided Link」にして、そのリンクを開き「自分のアプリに追加」する
+3. **Installation** タブで **Guild Install** を有効にし、Install Link（Discord Provided Link）から
+   **自分専用の Discord サーバー**（新しく作ったもので OK）に Bot を招待する
+   - Bot が DM を送ったり、DM でコマンドを使ったりするには **Bot との共通サーバーが必要** です
+   - そのサーバーのプライバシー設定で「ダイレクトメッセージを許可する」を ON にしておく
 4. 自分のユーザー ID を控える（Discord の設定 → 詳細設定 → 開発者モード ON → 自分のアイコンを右クリック →「ユーザー ID をコピー」）
 
-> User Install すると、Bot と共通のサーバーがなくても Bot から DM が届き、DM でスラッシュコマンドを使えます。
-> もし DM が届かない場合は、Bot を自分のサーバーに招待（Guild Install）しておくと確実です。
+> Bot は起動するたびに「起動しました」という DM を送ります。これで DM 一覧に Bot が現れ、
+> Google の連携状態と次回の通知時刻も確認できます。DM が届かない場合はログ（`journalctl -u tasks-reminder`）に原因が出ます。
 
 ### 3. Ubuntu Server へのインストール
 
@@ -84,7 +85,7 @@ journalctl -u tasks-reminder -f   # ログ確認
 
 ### 5. Discord で連携
 
-Bot との DM で次の順に実行します。
+起動すると Bot から「起動しました」の DM が届くので、その DM で次の順に実行します。
 
 1. `/google_auth` → リンクを開いて許可 → `http://localhost/?...`（「接続できません」と表示されるが正常）の
    アドレスバーの URL をコピー → 「URL を貼り付ける」ボタンから貼り付け

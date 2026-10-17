@@ -5,6 +5,7 @@ from tasks_reminder.config import JST
 from tasks_reminder.formatter import (
     DESCRIPTION_LIMIT,
     MESSAGE_EMBED_TOTAL_LIMIT,
+    build_greeting,
     build_reminder_messages,
     fit_lines,
     format_task_line,
@@ -56,6 +57,21 @@ def test_fit_lines_truncates_with_remaining_count():
 
 def test_fit_lines_keeps_all_when_fits():
     assert fit_lines(["a", "b"], limit=10) == "a\nb"
+
+
+def test_build_greeting_connected():
+    text = build_greeting(["08:00", "17:00"], NOW, None)
+    assert "起動しました" in text
+    assert "08:00, 17:00" in text
+    assert f"<t:{int(NOW.timestamp())}:f>" in text
+    assert "✅ 連携済み" in text
+
+
+def test_build_greeting_not_connected_without_next_run():
+    text = build_greeting(["08:00"], None, "Google アカウントが未連携です。")
+    assert "次回の通知" not in text
+    assert "⚠️ Google アカウントが未連携です。" in text
+    assert "/google_auth" in text
 
 
 def test_build_messages_basic():

@@ -15,7 +15,7 @@ from discord.ext import tasks
 from .auth import AuthError, GoogleAuth
 from .classifier import classify
 from .config import JST, Config
-from .formatter import OutgoingMessage, build_reminder_messages
+from .formatter import OutgoingMessage, build_greeting, build_reminder_messages
 from .google_tasks import TaskList, TasksClient
 from .settings import SettingsStore
 
@@ -52,6 +52,7 @@ class ReminderBot(discord.Client):
         self.store = SettingsStore(config.settings_path)
         self.auth = GoogleAuth(config.credentials_path, config.token_path)
         self.reminder_loop = tasks.loop(time=self.store.settings.schedule_times())(self._on_schedule)
+        self._greeted = False
 
     async def setup_hook(self) -> None:
         from .commands import register_commands
@@ -63,13 +64,43 @@ class ReminderBot(discord.Client):
 
     async def on_ready(self) -> None:
         log.info("ログインしました: %s / 通知時刻: %s", self.user, ", ".join(self.store.settings.notify_times))
+        # on_ready は再接続のたびに呼ばれるので、挨拶はプロセス起動時の 1 回だけ
+        if not self._greeted:
+            self._greeted = True
+            await self._send_greeting()
+
+    async def _owner(self) -> discord.User:
+        return self.get_user(self.config.owner_id) or await self.fetch_user(self.config.owner_id)
+
+    async def _send_greeting(self) -> None:
+        try:
+            await asyncio.to_thread(self.auth.load_credentials)
+            google_error = None
+        except AuthError as e:
+            google_error = str(e)
+        except Exception as e:
+            log.exception("起動時の Google 連携確認に失敗しました")
+            google_error = f"連携状態を確認できませんでした（{type(e).__name__}）"
+
+        content = build_greeting(self.store.settings.notify_times, self.reminder_loop.next_iteration, google_error)
+        try:
+            owner = await self._owner()
+            await owner.send(content)
+            log.info("起動通知を DM で送信しました")
+        except discord.Forbidden:
+            log.error(
+                "DM を送信できませんでした。Bot を自分のサーバーに招待して共通サーバーを作り、"
+                "そのサーバーの「ダイレクトメッセージを許可する」が有効か確認してください。"
+            )
+        except Exception:
+            log.exception("起動通知の送信に失敗しました")
 
     # ---- 定期通知 ----
 
     async def _on_schedule(self) -> None:
         # 例外が漏れるとループ自体が止まるので、ここですべて捕まえる
         try:
-            owner = self.get_user(self.config.owner_id) or await self.fetch_user(self.config.owner_id)
+            owner = await self._owner()
             await self.deliver_reminder(owner.send)
         except Exception:
             log.exception("定期通知に失敗しました")

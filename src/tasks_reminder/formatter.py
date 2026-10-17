@@ -81,6 +81,21 @@ def fit_lines(lines: list[str], limit: int = DESCRIPTION_LIMIT) -> str:
     return "\n".join(kept)
 
 
+def build_greeting(notify_times: list[str], next_run: datetime | None, google_error: str | None) -> str:
+    lines = [
+        "👋 タスクリマインド Bot が起動しました。",
+        f"⏰ 通知時刻（日本時間）: {', '.join(notify_times)}",
+    ]
+    if next_run is not None:
+        lines.append(f"　次回の通知: {discord.utils.format_dt(next_run, 'f')}")
+    if google_error is None:
+        lines.append("🔗 Google 連携: ✅ 連携済み")
+    else:
+        lines.append(f"🔗 Google 連携: ⚠️ {google_error}\n　→ `/google_auth` で連携してください。")
+    lines.append("`/remind_now` で今すぐ確認、`/settings` で設定を確認できます。")
+    return "\n".join(lines)
+
+
 def build_reminder_messages(
     classified: Classified,
     today: date,
