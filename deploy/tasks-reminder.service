@@ -1,5 +1,5 @@
 # /etc/systemd/system/tasks-reminder.service
-# YOUR_USER と /home/YOUR_USER/tasks_reminder は環境に合わせて書き換えてください。
+# YOUR_USER と /home/YOUR_USER/Tasks_Reminder はお使いの環境のあなたのユーザー名に揃えてください。whoamiコマンドで確認できます。
 [Unit]
 Description=Google Tasks reminder Discord bot
 After=network-online.target
@@ -7,9 +7,9 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=
-WorkingDirectory=/home/YOUR_USER/tasks_reminder
-ExecStart=/home/YOUR_USER/tasks_reminder/.venv/bin/python -m tasks_reminder
+User=YOUR_USER
+WorkingDirectory=/home/YOUR_USER/Tasks_Reminder
+ExecStart=/home/YOUR_USER/Tasks_Reminder/.venv/bin/python -m tasks_reminder
 Restart=on-failure
 RestartSec=30
 Environment=PYTHONUNBUFFERED=1
